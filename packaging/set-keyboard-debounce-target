@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Interactive selector for the keyboard debounce target.
+
+Lists keyboard-capable input devices and saves the chosen device path to
+~/.config/debounce-keyboard, which keyboard-debounce.service reads.
+"""
+
+import os
+import sys
+from pathlib import Path
+
+BY_ID = Path("/dev/input/by-id")
+CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "debounce-keyboard"
+
+
+def keyboard_devices():
+    """Return [(pretty_name, device_path)] for keyboard-capable event devices."""
+    try:
+        text = Path("/proc/bus/input/devices").read_text()
+    except OSError:
+        return []
+
+    names = {}  # event node path -> device name
+    name = None
+    for line in text.splitlines():
+        if line.startswith("N: "):
+            name = line[3:].split("=", 1)[-1].strip()
+        elif line.startswith("H: ") and name is not None:
+            handlers = line[3:].split()
+            if "kbd" in handlers:
+                for h in handlers:
+                    if h.startswith("event"):
+                        names["/dev/input/" + h] = name
+        elif not line.strip():
+            name = None
+
+    devices = []
+    if BY_ID.is_dir():
+        for entry in sorted(BY_ID.glob("*-event-kbd")):
+            real = str(entry.resolve())
+            devices.append((names.get(real, "?"), str(entry)))
+    return devices
+
+
+def main():
+    devices = keyboard_devices()
+    if not devices:
+        print("No keyboard-capable input devices found (looked in /dev/input/by-id).", file=sys.stderr)
+        return 1
+
+    print("Available keyboards:")
+    for i, (name, path) in enumerate(devices, 1):
+        print(f"  {i}. {name}  [{path}]")
+
+    try:
+        choice = input(f"Select keyboard [1-{len(devices)}] (blank to cancel): ").strip()
+    except EOFError:
+        print("No selection made; target unchanged.")
+        return 1
+    if not choice:
+        print("Cancelled; target unchanged.")
+        return 1
+    try:
+        idx = int(choice)
+    except ValueError:
+        print("Invalid selection.", file=sys.stderr)
+        return 1
+    if not 1 <= idx <= len(devices):
+        print(f"Please pick a number between 1 and {len(devices)}.", file=sys.stderr)
+        return 1
+
+    name, path = devices[idx - 1]
+    CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG.write_text(path + "\n")
+    print(f"Saved debounce target: {name} -> {CONFIG}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

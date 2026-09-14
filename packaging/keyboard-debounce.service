@@ -1,0 +1,17 @@
+[Unit]
+Description=Keyboard debounce (chattering fix) for the configured keyboard
+Documentation=https://github.com/Triforcey/KeyboardChatteringFix-Linux
+# Exit silently unless a target has been chosen with set-keyboard-debounce-target
+ConditionPathExists=%h/.config/debounce-keyboard
+
+[Service]
+Type=simple
+# Claim input group access for the user service, so the user does not need
+# to be added to the `input` group manually.
+SupplementaryGroups=input
+ExecStart=/usr/bin/keyboard-debounce-run
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

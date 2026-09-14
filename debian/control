@@ -1,0 +1,16 @@
+Source: keyboard-chattering-fix
+Section: utils
+Priority: optional
+Maintainer: Triforcey <judsonwebdesign@gmail.com>
+Rules-Requires-Root: no
+
+Package: keyboard-chattering-fix
+Architecture: arm64
+Depends: python3, python3-libevdev
+Description: Filter mechanical keyboard chattering on Linux (systemd user service)
+ Fork of finkrer/KeyboardChatteringFix-Linux. Ships the original tools as-is
+ plus a systemd user service (keyboard-debounce.service) that is enabled by
+ default. The service targets the keyboard chosen with
+ set-keyboard-debounce-target (saved in ~/.config/debounce-keyboard) and
+ exits silently when no target is configured. It claims access to input
+ devices itself via SupplementaryGroups=input.

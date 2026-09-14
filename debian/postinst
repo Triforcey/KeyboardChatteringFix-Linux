@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ]; then
+    # Enable the user service by default for all users (global enable).
+    systemctl --global enable keyboard-debounce.service || true
+    systemctl --global daemon-reload || true
+fi
+
+exit 0

@@ -1,0 +1,44 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1767313136,
+        "narHash": "sha256-16KkgfdYqjaeRGBaYsNrhPRRENs0qzkQVUooNHtoy2w=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ac62194c3917d5f474c1a844b6fd6da2db95077d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-25.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "upstream": "upstream"
+      }
+    },
+    "upstream": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1777902466,
+        "narHash": "sha256-UGp4DZQN49ZxE42QEmhbAGOs1jmbREVEZ6JQNssUqV8=",
+        "owner": "finkrer",
+        "repo": "KeyboardChatteringFix-Linux",
+        "rev": "38f46e2fc1a4792fe1165a577d6b39c50e6cc690",
+        "type": "github"
+      },
+      "original": {
+        "owner": "finkrer",
+        "repo": "KeyboardChatteringFix-Linux",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

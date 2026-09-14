@@ -1,0 +1,31 @@
+#!/bin/bash
+# Runs the upstream chattering fix against the keyboard chosen with
+# set-keyboard-debounce-target. Exits silently when no target is configured.
+set -u
+
+CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/debounce-keyboard"
+APP_DIR="/usr/lib/keyboard-chattering-fix"
+BY_ID="/dev/input/by-id"
+
+# No configured target (or empty file): exit silently.
+[ -s "$CONFIG_FILE" ] || exit 0
+target="$(cat "$CONFIG_FILE")"
+[ -n "$target" ] || exit 0
+
+# Target device gone (unplugged): exit quietly; systemd restarts us if it reappears.
+[ -e "$target" ] || exit 0
+
+# The fix tool resolves -k against /dev/input/by-id, so map the configured
+# device path back to its by-id name.
+real="$(readlink -f "$target")"
+name=""
+for entry in "$BY_ID"/*; do
+    [ -e "$entry" ] || continue
+    if [ "$(readlink -f "$entry")" = "$real" ]; then
+        name="${entry##*/}"
+        break
+    fi
+done
+[ -n "$name" ] || exit 0
+
+cd "$APP_DIR" && exec python3 -m src -k "$name" "$@"

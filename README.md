@@ -99,3 +99,43 @@ You can also use
 journalctl -xeu chattering_fix.service
 ```
 just to make sure that there are no errors.
+---
+
+## Debian package (Triforcey fork)
+
+This fork packages the upstream tool as an arm64 Debian package for the Raspberry Pi 5, with a systemd **user** service.
+
+### Dev environment (Nix flake)
+
+```bash
+nix develop   # creates .venv, pip-installs deps from upstream requirements.txt
+```
+
+The flake references the upstream repo (`github:finkrer/KeyboardChatteringFix-Linux`) as a `flake = false` input, so the original sources stay pinned and untouched.
+
+### Building the .deb
+
+```bash
+./build-deb.sh   # produces keyboard-chattering-fix_<ver>-<rev>_arm64.deb
+```
+
+No `dpkg-dev` needed: the script assembles the archive with `ar` + GNU tar (files are packaged as root:root via tar `--owner/--group`).
+
+### Installing on the Pi
+
+```bash
+sudo apt install ./keyboard-chattering-fix_*_arm64.deb
+```
+
+The package installs the original `src/` and `chattering_fix.sh` as-is under `/usr/lib/keyboard-chattering-fix/`, plus:
+
+- `set-keyboard-debounce-target` — interactive selector listing keyboard-capable input devices; saves the chosen device path to `~/.config/debounce-keyboard`.
+- `keyboard-debounce.service` (systemd **user** unit) — enabled by default for all users (`systemctl --global enable` in postinst). It targets the keyboard saved by the selector; if `~/.config/debounce-keyboard` does not exist, the service exits silently and does nothing. It claims `input` group access itself via `SupplementaryGroups=input`, so your user does not need to be added to the `input` group.
+
+To use it, just run:
+
+```bash
+set-keyboard-debounce-target
+```
+
+and pick your keyboard. To opt out, run `systemctl --user disable --now keyboard-debounce.service`.
