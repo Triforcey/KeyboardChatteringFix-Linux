@@ -1,10 +1,23 @@
 #!/bin/sh
 set -e
 
+enable_globally() {
+    if command -v systemctl >/dev/null 2>&1 && \
+       systemctl --global enable keyboard-debounce.service 2>/dev/null; then
+        return 0
+    fi
+    # Fallback for systems where `systemctl --global` is unsupported:
+    # create the default.target.wants link directly (same result).
+    mkdir -p /etc/systemd/user/default.target.wants
+    ln -sf /usr/lib/systemd/user/keyboard-debounce.service \
+        /etc/systemd/user/default.target.wants/keyboard-debounce.service
+}
+
 if [ "$1" = "configure" ]; then
-    # Enable the user service by default for all users (global enable).
-    systemctl --global enable keyboard-debounce.service || true
-    systemctl --global daemon-reload || true
+    enable_globally
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl --global daemon-reload 2>/dev/null || true
+    fi
 fi
 
 exit 0

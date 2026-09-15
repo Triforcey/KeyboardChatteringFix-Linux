@@ -2,7 +2,10 @@
 set -e
 
 if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
-    systemctl --global disable keyboard-debounce.service || true
+    if ! command -v systemctl >/dev/null 2>&1 || \
+       ! systemctl --global disable keyboard-debounce.service 2>/dev/null; then
+        rm -f /etc/systemd/user/default.target.wants/keyboard-debounce.service
+    fi
 fi
 
 exit 0
